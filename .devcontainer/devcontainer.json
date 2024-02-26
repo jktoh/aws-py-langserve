@@ -16,7 +16,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "poetry install  --no-interaction --no-ansi --no-root && pip3 install --user -r requirements.txt && pulumi login && pulumi config set open-api-key --secret $OPENAI_API_KEY"
+	"postCreateCommand": "poetry install  --no-interaction --no-ansi --no-root && pip3 install --user -r requirements.txt && pulumi login"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
