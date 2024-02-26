@@ -1,0 +1,3 @@
+config:
+  aws-py-langserve:open-api-key:
+    secure: AAABAIuc+oTVJYIzBwqL6q7KLYWNDbHZNFGnH126SJ7OvjJI/gFwEfXFX0aqUWhVi060s1wA0f6MC/V0+eOzpU4tsnxqe1sR76sop1vAFfRzQwE=
