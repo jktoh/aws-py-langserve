@@ -27,6 +27,9 @@ if subnet1_cidr is None:
 subnet2_cidr = config.get("subnet-2-cidr")
 if subnet2_cidr is None:
     subnet2_cidr = "10.0.1.0/24"
+subnet3_cidr = config.get("subnet-3-cidr")
+if subnet3_cidr is None:
+    subnet3_cidr = "10.0.2.0/24"
 container_context = config.get("container-context")
 if container_context is None:
     container_context = "."
@@ -37,8 +40,9 @@ open_api_key = config.get("open-api-key")
 if open_api_key is None:
     open_api_key = "CHANGEME"
 availability_zones = [
-    "eu-central-1a",
-    "eu-central-1b",
+    "ap-southeast-1a",
+    "ap-southeast-1b",
+    "ap-southeast-1c",
 ]
 current = aws.get_caller_identity_output()
 pulumi_project = pulumi.get_project()
@@ -114,11 +118,22 @@ langserve_subnet2 = aws.ec2.Subnet("langserve-subnet2",
     tags={
         "Name": f"{pulumi_project}-{pulumi_stack}-2",
     })
+langserve_subnet3 = aws.ec2.Subnet("langserve-subnet3",
+    vpc_id=langserve_vpc.id,
+    cidr_block=subnet3_cidr,
+    availability_zone=availability_zones[2],
+    map_public_ip_on_launch=True,
+    tags={
+        "Name": f"{pulumi_project}-{pulumi_stack}-3",
+    })
 langserve_subnet1_rt_assoc = aws.ec2.RouteTableAssociation("langserve-subnet1-rt-assoc",
     subnet_id=langserve_subnet1.id,
     route_table_id=langserve_rt.id)
 langserve_subnet2_rt_assoc = aws.ec2.RouteTableAssociation("langserve-subnet2-rt-assoc",
     subnet_id=langserve_subnet2.id,
+    route_table_id=langserve_rt.id)
+langserve_subnet3_rt_assoc = aws.ec2.RouteTableAssociation("langserve-subnet3-rt-assoc",
+    subnet_id=langserve_subnet3.id,
     route_table_id=langserve_rt.id)
 langserve_ecs_cluster = aws.ecs.Cluster("langserve-ecs-cluster",
     configuration=aws.ecs.ClusterConfigurationArgs(
@@ -159,6 +174,7 @@ langserve_load_balancer = aws.lb.LoadBalancer("langserve-load-balancer",
     subnets=[
         langserve_subnet1.id,
         langserve_subnet2.id,
+        langserve_subnet3.id,
     ])
 langserve_target_group = aws.lb.TargetGroup("langserve-target-group",
     port=80,
@@ -387,6 +403,7 @@ langserve_service = aws.ecs.Service("langserve-service",
         subnets=[
             langserve_subnet1.id,
             langserve_subnet2.id,
+            langserve_subnet3.id,
         ],
     ),
     load_balancers=[aws.ecs.ServiceLoadBalancerArgs(
