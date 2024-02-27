@@ -8,6 +8,7 @@
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		"ghcr.io/devcontainers/features/aws-cli": {},
+		"ghcr.io/devcontainers/features/docker-in-docker": {},
 		"ghcr.io/devcontainers-contrib/features/poetry": {},
 		"ghcr.io/devcontainers-contrib/features/pulumi": {}
 	},
@@ -16,7 +17,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "poetry install  --no-interaction --no-ansi --no-root && pip3 install --user -r requirements.txt && pulumi login"
+	"postCreateCommand": "poetry install  --no-interaction --no-ansi --no-root && pip3 install --user -r requirements.txt && pulumi login && pulumi config set open-api-key --secret $OPENAI_API_KEY -s aws-py-langserve"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
