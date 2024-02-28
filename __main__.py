@@ -261,7 +261,7 @@ langserve_execution_role = aws.iam.Role("langserve-execution-role",
     }),
     inline_policies=[aws.iam.RoleInlinePolicyArgs(
         name=f"{pulumi_project}-{pulumi_stack}-service-secrets-policy",
-        policy=pulumi.Output.all(langserve_ssm_parameter.arn, langserve_key.arn).apply(lambda langserve_ssm_parameter_arn, langserve_key_arn: json.dumps({
+        policy=pulumi.Output.all(langserve_ssm_parameter.arn, langserve_key.arn).apply(lambda x: json.dumps({
             "Version": "2012-10-17",
             "Statement": [
                 {
@@ -273,7 +273,7 @@ langserve_execution_role = aws.iam.Role("langserve-execution-role",
                         },
                     },
                     "Effect": "Allow",
-                    "Resource": [langserve_ssm_parameter_arn],
+                    "Resource": [x[0]],
                 },
                 {
                     "Action": ["kms:Decrypt"],
@@ -284,7 +284,7 @@ langserve_execution_role = aws.iam.Role("langserve-execution-role",
                         },
                     },
                     "Effect": "Allow",
-                    "Resource": [langserve_key_arn],
+                    "Resource": [x[1]],
                     "Sid": "DecryptTaggedKMSKey",
                 },
             ],
@@ -351,9 +351,9 @@ langserve_task_definition = aws.ecs.TaskDefinition("langserve-task-definition",
     execution_role_arn=langserve_execution_role.arn,
     task_role_arn=langserve_task_role.arn,
     requires_compatibilities=["FARGATE"],
-    container_definitions=pulumi.Output.all(langserve_ecr_image.repo_digest, langserve_ssm_parameter.name, langserve_log_group.name).apply(lambda repo_digest, langserve_ssm_parameter_name, langserve_log_group_name: json.dumps([{
+    container_definitions=pulumi.Output.all(langserve_ecr_image.repo_digest, langserve_ssm_parameter.name, langserve_log_group.name).apply(lambda x: json.dumps([{
         "name": f"{pulumi_project}-{pulumi_stack}-service",
-        "image": repo_digest,
+        "image": x[0],
         "cpu": 0,
         "portMappings": [{
             "name": "target",
@@ -364,13 +364,13 @@ langserve_task_definition = aws.ecs.TaskDefinition("langserve-task-definition",
         "essential": True,
         "secrets": [{
             "name": "OPENAI_API_KEY",
-            "valueFrom": langserve_ssm_parameter_name,
+            "valueFrom": x[1],
         }],
         "logConfiguration": {
             "logDriver": "awslogs",
             "options": {
-                "awslogs-group": langserve_log_group_name,
-                "awslogs-region": "eu-central-1",
+                "awslogs-group": x[2],
+                "awslogs-region": "ap-southeast-1",
                 "awslogs-stream-prefix": "pulumi-langserve",
             },
         },
